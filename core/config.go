@@ -1,4 +1,4 @@
-package transferwiser
+package core
 
 import (
 	"sync"
@@ -8,6 +8,9 @@ import (
 
 type config struct {
 	Port int `default:"8080"`
+
+	TWHost          string `default:"sandbox.transferwise.tech"`
+	TWLoginRedirect string `required:"true"`
 }
 
 var configInstance *config
@@ -16,7 +19,7 @@ var configOnce sync.Once
 func GetConfig() *config {
 	configOnce.Do(func() {
 		var cfg config
-		err := envconfig.Process("transferwise", &cfg)
+		err := envconfig.Process("transferwiser", &cfg)
 		if err != nil {
 			panic(err)
 		}

@@ -1,7 +1,8 @@
+export TRANSFERWISER_TWLOGINREDIRECT ?= "http://localhost/callback"
 
 .PHONY: bdd
 bdd: godog
-	godog
+	@godog
 
 .PHONY: docker_build
 docker_build:
