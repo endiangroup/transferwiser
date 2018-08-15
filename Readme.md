@@ -9,3 +9,4 @@ All configuration uses environment variables:
 - `TRANSFERWISER_PORT` is the http port where the service will be served. Default `8080`
 - `TRANSFERWISER_TWHOST` is the transferwise host. Default `sandbox.transferwise.tech`
 - `TRANSFERWISER_TWLOGINREDIRECT` is the url to return when linking with a transferwise account.
+- `TRANSFERWISER_TWCLIENTID` is the client_id sent to transferwise authentication requests. Default `endiangroup/transferwiser`
