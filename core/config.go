@@ -12,6 +12,8 @@ type config struct {
 	TWHost          string `default:"sandbox.transferwise.tech"`
 	TWLoginRedirect string `required:"true"`
 	TWClientID      string `default:"endiangroup/transferwiser"`
+
+	RedisAddr string `default:"localhost:6379"`
 }
 
 var configInstance *config
