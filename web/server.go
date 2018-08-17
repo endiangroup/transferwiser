@@ -50,7 +50,7 @@ func (s *server) callback(c echo.Context) error {
 	}
 	err = s.twTransferProvider.UseAuthentication(twData)
 	if err != nil {
-		s.logger.Error("error using autnehtication", zap.Error(err))
+		s.logger.Error("error using authentication", zap.Error(err))
 		return echo.NewHTTPError(500, "error configuring transferwise authentication")
 	}
 	return c.Redirect(301, "/")
