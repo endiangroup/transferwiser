@@ -10,21 +10,18 @@ import (
 	"github.com/DATA-DOG/godog"
 	"github.com/DATA-DOG/godog/gherkin"
 	"github.com/endiangroup/transferwiser/core"
-	"github.com/endiangroup/transferwiser/core/mocks"
+	coreMocks "github.com/endiangroup/transferwiser/core/mocks"
+	kvMocks "github.com/endiangroup/transferwiser/keyvalue/mocks"
 	"github.com/endiangroup/transferwiser/web"
 	"github.com/labstack/echo"
-	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
 )
 
-var (
-	redirectURL = "http://must-redirect-here.com"
-)
-
 type BDDContext struct {
-	webAuthenticator *mocks.TransferwiseAuthenticator
-	transferProvider *mocks.TransferwiseTransfersProvider
-	webApp           *echo.Echo
+	transferwiseAPI     *coreMocks.TransferwiseAPI
+	authStore           *kvMocks.Value
+	transferwiseService *core.TransferwiseService
+	webApp              *echo.Echo
 
 	isAuthenticated bool
 
@@ -35,23 +32,20 @@ func NewBDDContext() *BDDContext {
 	return &BDDContext{}
 }
 
+var redirectUrl = "https://sandbox.transferwise.tech/oauth/authorize?response_type=code&client_id=clientID&redirect_uri=http:%2F%2Fredirect%2Fhere"
+
 func (ctx *BDDContext) Init() {
-	authMock := &mocks.TransferwiseAuthenticator{}
-	transferProviderMock := &mocks.TransferwiseTransfersProvider{}
-	ctx.isAuthenticated = false
-	webServer := web.NewServer(zap.NewNop(), authMock, transferProviderMock)
+	ctx.transferwiseAPI = &coreMocks.TransferwiseAPI{}
+	ctx.authStore = &kvMocks.Value{}
+	ctx.transferwiseService = core.NewTransferwiseService(
+		ctx.transferwiseAPI,
+		"clientID",
+		"sandbox.transferwise.tech",
+		"http://redirect/here",
+		ctx.authStore)
 
-	authMock.On("RedirectUrl").Return(redirectURL)
-	transferProviderMock.On("IsAuthenticated").Return(func() bool {
-		return ctx.isAuthenticated
-	})
-	transferProviderMock.On("UseAuthentication", mock.Anything).Return(func(data *core.RefreshTokenData) error {
-		ctx.isAuthenticated = true
-		return nil
-	})
+	webServer := web.NewServer(zap.NewNop(), ctx.transferwiseService)
 
-	ctx.webAuthenticator = authMock
-	ctx.transferProvider = transferProviderMock
 	ctx.webApp = webServer.MainHandler()
 }
 
@@ -81,7 +75,7 @@ func FeatureContext(s *godog.Suite) {
 //
 
 func (ctx *BDDContext) TheServiceHasNotBeenAuthenticatedWithTransferwise() error {
-	if ctx.transferProvider.IsAuthenticated() {
+	if ctx.transferwiseService.IsAuthenticated() {
 		return errors.New("service expected to be authenticated, but it's not")
 	}
 	return nil
@@ -104,8 +98,8 @@ func (ctx *BDDContext) IShouldBeRedirectedToTheTransferwiseOauthLoginPage() erro
 		return fmt.Errorf("expected 301 redirect, got %v", ctx.lastResponseRecorder.Code)
 	}
 	receivedRedirectURL := ctx.lastResponseRecorder.HeaderMap.Get("location")
-	if receivedRedirectURL != redirectURL {
-		return fmt.Errorf("Redirect URL is %q, but returned %q", receivedRedirectURL, redirectURL)
+	if receivedRedirectURL != redirectUrl {
+		return fmt.Errorf("Redirect URL is %q, but returned %q", receivedRedirectURL, redirectUrl)
 	}
 	return nil
 }
@@ -128,10 +122,10 @@ func (ctx *BDDContext) TransferwiseRefreshTokenResponseIs(token string, data *gh
 			refreshTokenData.ExpiresIn = int64(num)
 		case "scope":
 			refreshTokenData.Scope = row.Cells[1].Value
-
 		}
 	}
-	ctx.webAuthenticator.On("RefreshToken", token).Return(refreshTokenData, nil)
+	ctx.transferwiseAPI.On("RefreshToken", token).Return(refreshTokenData, nil)
+	ctx.authStore.On("PutString", refreshTokenData.AccessToken).Return(nil)
 	return nil
 }
 
@@ -147,7 +141,7 @@ func (ctx *BDDContext) IReturnFromTransferwiseOAuthWithCode(token string) error 
 }
 
 func (ctx *BDDContext) TheServiceIsAuthenticatedWithTransferwise() error {
-	if !ctx.transferProvider.IsAuthenticated() {
+	if !ctx.transferwiseService.IsAuthenticated() {
 		return errors.New("service expected to be authenticated, but it's not")
 	}
 	return nil

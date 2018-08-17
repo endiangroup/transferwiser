@@ -9,16 +9,14 @@ import (
 )
 
 type server struct {
-	logger             *zap.Logger
-	twAuth             core.TransferwiseAuthenticator
-	twTransferProvider core.TransferwiseTransfersProvider
+	logger              *zap.Logger
+	transferwiseService *core.TransferwiseService
 }
 
-func NewServer(logger *zap.Logger, twAuth core.TransferwiseAuthenticator, twTransferProvider core.TransferwiseTransfersProvider) *server {
+func NewServer(logger *zap.Logger, transferwiseService *core.TransferwiseService) *server {
 	return &server{
-		logger:             logger,
-		twAuth:             twAuth,
-		twTransferProvider: twTransferProvider,
+		logger:              logger,
+		transferwiseService: transferwiseService,
 	}
 }
 
@@ -38,17 +36,17 @@ func (s *server) MainHandler() *echo.Echo {
 }
 
 func (s *server) link(c echo.Context) error {
-	return c.Redirect(301, s.twAuth.RedirectUrl())
+	return c.Redirect(301, s.transferwiseService.RedirectUrl())
 }
 
 func (s *server) callback(c echo.Context) error {
 	transferwiseRefreshToken := c.QueryParam("code")
-	twData, err := s.twAuth.RefreshToken(transferwiseRefreshToken)
+	twData, err := s.transferwiseService.Api.RefreshToken(transferwiseRefreshToken)
 	if err != nil {
 		s.logger.Error("error refreshing transferwise code", zap.Error(err))
 		return echo.NewHTTPError(500, "error confirming transferwise authentication")
 	}
-	err = s.twTransferProvider.UseAuthentication(twData)
+	err = s.transferwiseService.UseAuthentication(twData)
 	if err != nil {
 		s.logger.Error("error using authentication", zap.Error(err))
 		return echo.NewHTTPError(500, "error configuring transferwise authentication")
