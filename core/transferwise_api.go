@@ -20,6 +20,14 @@ type transferwiseAPI struct {
 type Transfer struct {
 }
 
+func NewTransferwiseAPI() *transferwiseAPI {
+	return &transferwiseAPI{}
+}
+
 func (tw *transferwiseAPI) Transfers() ([]*Transfer, error) {
 	return []*Transfer{}, nil
+}
+
+func (tw *transferwiseAPI) RefreshToken(code string) (*RefreshTokenData, error) {
+	return &RefreshTokenData{}, nil
 }
