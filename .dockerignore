@@ -1,2 +1,6 @@
 Dockerfile
 vendor
+proxy/*.crt
+proxy/*.key
+proxy/*.csr
+proxy/*.p12
