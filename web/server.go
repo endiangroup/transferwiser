@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/endiangroup/transferwiser/core"
 	"github.com/labstack/echo"
@@ -30,8 +31,9 @@ func (s *server) Run(port int) error {
 
 func (s *server) MainHandler() *echo.Echo {
 	e := echo.New()
-	e.GET("/oauth/link", s.link)
-	e.GET("/oauth/callback", s.callback)
+	e.Use(s.authenticate)
+	e.GET("/oauth/link", s.link, s.requireUsername("admin"))
+	e.GET("/oauth/callback", s.callback, s.requireUsername("admin"))
 	return e
 }
 
@@ -52,4 +54,34 @@ func (s *server) callback(c echo.Context) error {
 		return echo.NewHTTPError(500, "error configuring transferwise authentication")
 	}
 	return c.Redirect(301, "/")
+}
+
+func (s *server) authenticate(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		verified := c.Request().Header.Get("VERIFIED")
+		if verified != "SUCCESS" {
+			s.logger.Error("client certificate not verified", zap.String("verified", verified))
+			return c.String(401, "Unauthorized")
+		}
+		dnHeader := c.Request().Header.Get("DN")
+		if dnHeader == "" {
+			s.logger.Error("headers don't contain DN")
+			return c.String(401, "Unauthorized")
+		}
+		parts := strings.Split(dnHeader, ",")
+		var cn string
+		for _, part := range parts {
+			if strings.HasPrefix(part, "CN=") {
+				cn = strings.TrimPrefix(part, "CN=")
+				break
+			}
+		}
+		if dnHeader == "" {
+			s.logger.Error("DN header don't contain DN", zap.String("dn", dnHeader))
+			return c.String(401, "Unauthorized")
+		}
+		c.Set("username", cn)
+
+		return next(c)
+	}
 }

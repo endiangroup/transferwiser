@@ -16,9 +16,14 @@ import (
 	"go.uber.org/zap"
 )
 
-var redirectUrl = "https://sandbox.transferwise.tech/oauth/authorize?response_type=code&client_id=clientID&redirect_uri=http:%2F%2Fredirect%2Fhere"
+type testData struct {
+	transferwiseAPI     *coreMocks.TransferwiseAPI
+	authStore           *kvMocks.Value
+	transferwiseService *core.TransferwiseService
+	webApp              *echo.Echo
+}
 
-func TestTransferwiseLinkRedirect(t *testing.T) {
+func getTestData(t *testing.T) *testData {
 	transferwiseAPI := &coreMocks.TransferwiseAPI{}
 	authStore := &kvMocks.Value{}
 	transferwiseService := core.NewTransferwiseService(
@@ -28,35 +33,65 @@ func TestTransferwiseLinkRedirect(t *testing.T) {
 		"http://redirect/here",
 		authStore)
 
-	webServer := NewServer(zap.NewNop(), transferwiseService)
+	logger, err := zap.NewDevelopment()
+	require.NoError(t, err)
+	webServer := NewServer(logger, transferwiseService)
 
 	webApp := webServer.MainHandler()
+	return &testData{
+		transferwiseAPI:     transferwiseAPI,
+		authStore:           authStore,
+		transferwiseService: transferwiseService,
+		webApp:              webApp,
+	}
+}
+
+func TestTransferwiseLinkRedirect_Redirects(t *testing.T) {
+	data := getTestData(t)
 
 	req, err := http.NewRequest(echo.GET, "/oauth/link", nil)
 	require.NoError(t, err)
+	req.Header.Set("DN", "EMAIL=admin@endian.io,CN=admin,C=UK")
+	req.Header.Set("VERIFIED", "SUCCESS")
 
 	resRec := httptest.NewRecorder()
-	webApp.ServeHTTP(resRec, req)
+	data.webApp.ServeHTTP(resRec, req)
 
 	require.Equal(t, 301, resRec.Code)
-	require.Equal(t, redirectUrl, resRec.HeaderMap.Get("location"))
+	require.Equal(t, data.transferwiseService.RedirectUrl(), resRec.HeaderMap.Get("location"))
 }
 
-func TestTransferwiseCallback(t *testing.T) {
+func TestTransferwiseLinkRedirect_RequiresAdmin(t *testing.T) {
+	data := getTestData(t)
+
+	req, err := http.NewRequest(echo.GET, "/oauth/link", nil)
+	require.NoError(t, err)
+	req.Header.Set("DN", "EMAIL=accounting@endian.io,CN=accountant1,C=UK")
+	req.Header.Set("VERIFIED", "SUCCESS")
+
+	resRec := httptest.NewRecorder()
+	data.webApp.ServeHTTP(resRec, req)
+
+	require.Equal(t, 403, resRec.Code)
+}
+
+func TestTransferwiseLinkRedirect_RequiresVerifiedCertificate(t *testing.T) {
+	data := getTestData(t)
+
+	req, err := http.NewRequest(echo.GET, "/oauth/link", nil)
+	require.NoError(t, err)
+	req.Header.Set("DN", "EMAIL=admin@endian.io,CN=admin,C=UK")
+	req.Header.Set("VERIFIED", "NONE")
+
+	resRec := httptest.NewRecorder()
+	data.webApp.ServeHTTP(resRec, req)
+
+	require.Equal(t, 401, resRec.Code)
+}
+
+func TestTransferwiseCallback_UsesCredentials(t *testing.T) {
 	token := "asdf1234"
-
-	transferwiseAPI := &coreMocks.TransferwiseAPI{}
-	authStore := &kvMocks.Value{}
-	transferwiseService := core.NewTransferwiseService(
-		transferwiseAPI,
-		"clientID",
-		"sandbox.transferwise.tech",
-		"http://redirect/here",
-		authStore)
-
-	webServer := NewServer(zap.NewNop(), transferwiseService)
-
-	webApp := webServer.MainHandler()
+	data := getTestData(t)
 
 	refreshTokenData := &core.RefreshTokenData{
 		AccessToken:  "myaccesstoken",
@@ -65,15 +100,51 @@ func TestTransferwiseCallback(t *testing.T) {
 		ExpiresIn:    3600,
 		Scope:        "transfers",
 	}
-	transferwiseAPI.On("RefreshToken", token).Return(refreshTokenData, nil)
-	authStore.On("PutString", refreshTokenData.AccessToken).Return(nil)
+	data.transferwiseAPI.On("RefreshToken", token).Return(refreshTokenData, nil)
+	data.authStore.On("PutString", refreshTokenData.AccessToken).Return(nil)
 
 	req, err := http.NewRequest(echo.GET, fmt.Sprintf("/oauth/callback?code=%v", token), nil)
 	require.NoError(t, err)
+	req.Header.Set("DN", "EMAIL=admin@endian.io,CN=admin,C=UK")
+	req.Header.Set("VERIFIED", "SUCCESS")
 
 	resRec := httptest.NewRecorder()
 
-	require.False(t, transferwiseService.IsAuthenticated())
-	webApp.ServeHTTP(resRec, req)
-	require.True(t, transferwiseService.IsAuthenticated())
+	require.False(t, data.transferwiseService.IsAuthenticated())
+	data.webApp.ServeHTTP(resRec, req)
+	require.Equal(t, 301, resRec.Code)
+	require.Equal(t, "/", resRec.HeaderMap.Get("location"))
+	require.True(t, data.transferwiseService.IsAuthenticated())
+}
+
+func TestTransferwiseCallback_RequiresAdmin(t *testing.T) {
+	token := "asdf1234"
+	data := getTestData(t)
+
+	req, err := http.NewRequest(echo.GET, fmt.Sprintf("/oauth/callback?code=%v", token), nil)
+	require.NoError(t, err)
+	req.Header.Set("DN", "EMAIL=accounting@endian.io,CN=accountant1,C=UK")
+	req.Header.Set("VERIFIED", "SUCCESS")
+
+	resRec := httptest.NewRecorder()
+
+	data.webApp.ServeHTTP(resRec, req)
+	require.Equal(t, 403, resRec.Code)
+	require.False(t, data.transferwiseService.IsAuthenticated())
+}
+
+func TestTransferwiseCallback_RequiresVerifiedCertificate(t *testing.T) {
+	token := "asdf1234"
+	data := getTestData(t)
+
+	req, err := http.NewRequest(echo.GET, fmt.Sprintf("/oauth/callback?code=%v", token), nil)
+	require.NoError(t, err)
+	req.Header.Set("DN", "EMAIL=admin@endian.io,CN=admin,C=UK")
+	req.Header.Set("VERIFIED", "NONE")
+
+	resRec := httptest.NewRecorder()
+
+	data.webApp.ServeHTTP(resRec, req)
+	require.Equal(t, 401, resRec.Code)
+	require.False(t, data.transferwiseService.IsAuthenticated())
 }
