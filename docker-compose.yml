@@ -4,7 +4,7 @@ services:
   redis:
     image: "redis:alpine"
     ports:
-      - 6379:6379
+      - 16379:6379
 
   transferwiser:
     image: endiangroup/transferwiser:latest

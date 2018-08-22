@@ -1,23 +1,17 @@
-export TRANSFERWISER_TWLOGINREDIRECT ?= "http://localhost:3000/oauth/callback"
+export TRANSFERWISER_TWLOGINREDIRECT ?= http://localhost:3000/oauth/callback
+export TRANSFERWISER_REDISADDR ?= localhost:16379
 
-.PHONY: bdd
-bdd: godog
-	@godog
+.PHONY: integration
+integration: 
+	go test ./... -tags="integration"
+
+.PHONY: test
+test: 
+	go test ./...
 
 .PHONY: docker_build
 docker_build:
 	docker build -t endian-group/transferwiser:latest .
-
-# Tools
-
-.PHONY: godog
-GODOG_BIN := $(shell command -v godog 2> /dev/null)
-godog:
-ifndef GODOG_BIN
-	@echo "Installing godog..."
-	@go get github.com/DATA-DOG/godog/cmd/godog
-endif
-
 
 .PHONY: ca_cert
 ca_cert:

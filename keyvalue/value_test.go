@@ -1,11 +1,15 @@
-package keyvalue
+package keyvalue_test
 
-import "testing"
-import "github.com/stretchr/testify/require"
+import (
+	"testing"
 
-func wrappedMemoryKV() Value {
-	kv := NewMemoryKeyValue()
-	return WrapKeyValue(kv, "test")
+	"github.com/kowala-tech/kcoin/notifications/keyvalue"
+	"github.com/stretchr/testify/require"
+)
+
+func wrappedMemoryKV() keyvalue.Value {
+	kv := keyvalue.NewMemoryKeyValue()
+	return keyvalue.WrapKeyValue(kv, "test")
 }
 
 func Test_MemoryValueStorage_StoreString(t *testing.T) {

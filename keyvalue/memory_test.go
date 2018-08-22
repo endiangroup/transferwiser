@@ -1,10 +1,14 @@
-package keyvalue
+package keyvalue_test
 
-import "testing"
-import "github.com/stretchr/testify/require"
+import (
+	"testing"
+
+	"github.com/kowala-tech/kcoin/notifications/keyvalue"
+	"github.com/stretchr/testify/require"
+)
 
 func Test_MemoryKeyValueStorage_StoreString(t *testing.T) {
-	kv := NewMemoryKeyValue()
+	kv := keyvalue.NewMemoryKeyValue()
 	str := "Hello world"
 
 	err := kv.PutString("str", str)
@@ -16,7 +20,7 @@ func Test_MemoryKeyValueStorage_StoreString(t *testing.T) {
 }
 
 func Test_MemoryKeyValueStorage_StoreInt(t *testing.T) {
-	kv := NewMemoryKeyValue()
+	kv := keyvalue.NewMemoryKeyValue()
 	var n int64 = 42
 
 	err := kv.PutInt64("n", n)

@@ -2,16 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/DATA-DOG/godog"
-  packages = [
-    ".",
-    "colors",
-    "gherkin"
-  ]
-  revision = "0371765570d36374bef4ab9f62ed0491f0862a3c"
-  version = "v0.7.6"
-
-[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
@@ -142,6 +132,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "71eccdd8dedc1d4cfb18e4d24a0035c36e535a7744b6e42f1c68faaa5ed20f44"
+  inputs-digest = "c03b04434b24fa6b6da9ade8b53a3bd0793d0612e78503ee1927f2d1a366f2eb"
   solver-name = "gps-cdcl"
   solver-version = 1

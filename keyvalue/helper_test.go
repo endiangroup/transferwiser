@@ -1,12 +1,13 @@
-package keyvalue
+package keyvalue_test
 
 import (
 	"testing"
 
+	"github.com/endiangroup/transferwiser/keyvalue"
 	"github.com/stretchr/testify/require"
 )
 
-func sharedKeyValueTests(t *testing.T, kv KeyValue) {
+func sharedKeyValueTests(t *testing.T, kv keyvalue.KeyValue) {
 	t.Run("StoreString", func(t *testing.T) {
 		str := "Hello world"
 
