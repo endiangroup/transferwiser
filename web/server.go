@@ -30,8 +30,8 @@ func (s *server) Run(port int) error {
 
 func (s *server) MainHandler() *echo.Echo {
 	e := echo.New()
-	e.GET("/link", s.link)
-	e.GET("/callback", s.callback)
+	e.GET("/oauth/link", s.link)
+	e.GET("/oauth/callback", s.callback)
 	return e
 }
 

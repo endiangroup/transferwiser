@@ -130,7 +130,7 @@ func (ctx *BDDContext) TransferwiseRefreshTokenResponseIs(token string, data *gh
 }
 
 func (ctx *BDDContext) IReturnFromTransferwiseOAuthWithCode(token string) error {
-	req, err := http.NewRequest("GET", fmt.Sprintf("/callback?code=%v", token), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("/oauth/callback?code=%v", token), nil)
 	if err != nil {
 		return err
 	}
