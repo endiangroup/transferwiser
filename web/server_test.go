@@ -6,8 +6,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/endiangroup/transferwiser/core"
 	coreMocks "github.com/endiangroup/transferwiser/core/mocks"
+	"github.com/gocarina/gocsv"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -35,6 +38,22 @@ func getTestData(t *testing.T) *testData {
 func TestTransferwiseTransfers_RespondsWithACsv(t *testing.T) {
 	data := getTestData(t)
 
+	transfers := []*core.Transfer{
+		{
+			ID:             1,
+			CreatedAt:      time.Now(),
+			Status:         "incoming_payment_waiting",
+			RecipientName:  "Bill Gates",
+			SourceValue:    10.000,
+			SourceCurrency: "GPB",
+			TargetValue:    12.3456,
+			TargetCurrency: "EUR",
+			Fee:            1.234,
+			ExchangeRate:   1.2345,
+		},
+	}
+	data.transferwiseAPI.On("Transfers").Return(transfers, nil)
+
 	req, err := http.NewRequest(echo.GET, "/transfers.csv", nil)
 	require.NoError(t, err)
 	req.Header.Set("DN", "EMAIL=admin@endian.io,CN=admin,C=UK")
@@ -45,6 +64,10 @@ func TestTransferwiseTransfers_RespondsWithACsv(t *testing.T) {
 
 	require.Equal(t, 200, resRec.Code)
 	require.Equal(t, "text/csv", resRec.Header().Get(echo.HeaderContentType))
+
+	expected, err := gocsv.MarshalString(&transfers)
+	require.NoError(t, err)
+	require.Equal(t, expected, resRec.Body.String())
 }
 
 func TestTransferwiseTransfers_RequiresCN(t *testing.T) {

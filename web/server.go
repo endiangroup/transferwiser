@@ -2,9 +2,11 @@ package web
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/endiangroup/transferwiser/core"
+	"github.com/gocarina/gocsv"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 )
@@ -37,8 +39,15 @@ func (s *server) MainHandler() *echo.Echo {
 }
 
 func (s *server) transfersCSV(c echo.Context) error {
+	transfers, err := s.transferwiseAPI.Transfers()
+	if err != nil {
+		s.logger.Error("error fetching transferwise transfers", zap.Error(err))
+		return c.String(500, "Internal server error")
+	}
 	c.Response().Header().Set(echo.HeaderContentType, "text/csv")
-	return c.String(200, "")
+	c.Response().WriteHeader(http.StatusOK)
+
+	return gocsv.Marshal(&transfers, c.Response())
 }
 
 func (s *server) authenticate(next echo.HandlerFunc) echo.HandlerFunc {
