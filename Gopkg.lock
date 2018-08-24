@@ -23,10 +23,22 @@
   version = "v6.13.2"
 
 [[projects]]
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
+  version = "v1.2.0"
+
+[[projects]]
   name = "github.com/kelseyhightower/envconfig"
   packages = ["."]
   revision = "f611eb38b3875cc3bd991ca91c51d06446afa14c"
   version = "v1.3.0"
+
+[[projects]]
+  name = "github.com/kowala-tech/kcoin"
+  packages = ["notifications/keyvalue"]
+  revision = "08295764bcaf85bb7556a5a9597e16b7ec8a140c"
+  version = "1.0.14"
 
 [[projects]]
   name = "github.com/labstack/echo"
@@ -125,13 +137,45 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/net"
+  packages = [
+    "context",
+    "context/ctxhttp"
+  ]
+  revision = "faa378e6dbaed88bd8100f8bcf09939375c6e8fa"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/oauth2"
+  packages = [
+    ".",
+    "internal"
+  ]
+  revision = "d2e6202438beef2727060aa7cabdd924d92ebfd9"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
   revision = "904bdc257025c7b3f43c19360ad3ab85783fad78"
 
+[[projects]]
+  name = "google.golang.org/appengine"
+  packages = [
+    "internal",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch"
+  ]
+  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
+  version = "v1.1.0"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c03b04434b24fa6b6da9ade8b53a3bd0793d0612e78503ee1927f2d1a366f2eb"
+  inputs-digest = "33176a400f066df8b2a0b9e95cd693cfb732091847b45b33f08623843a474e62"
   solver-name = "gps-cdcl"
   solver-version = 1

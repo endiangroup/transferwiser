@@ -2,9 +2,7 @@ package main
 
 import (
 	"github.com/endiangroup/transferwiser/core"
-	"github.com/endiangroup/transferwiser/keyvalue"
 	"github.com/endiangroup/transferwiser/web"
-	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 )
 
@@ -17,19 +15,9 @@ func main() {
 
 	config := core.GetConfig()
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     config.RedisAddr,
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-	redisKV := keyvalue.NewRedisKeyValue(redisClient)
-	authKeyStore := keyvalue.NewValue(redisKV, "authentication_token")
+	transferwiseAPI := core.NewTransferwiseAPI(config.TwAPIToken)
 
-	transferwiseAPI := core.NewTransferwiseAPI()
-
-	transferwiseService := core.NewTransferwiseService(transferwiseAPI, config.TWClientID, config.TWHost, config.TWLoginRedirect, authKeyStore)
-
-	webServer := web.NewServer(logger, transferwiseService)
+	webServer := web.NewServer(logger, transferwiseAPI)
 	err = webServer.Run(config.Port)
 	if err != nil {
 		logger.Error("error running web.", zap.Error(err))

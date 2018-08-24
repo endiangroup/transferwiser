@@ -7,9 +7,7 @@ This service acts as a read-only interface for users to see the list of transact
 All configuration uses environment variables:
 
 - `TRANSFERWISER_PORT` is the http port where the service will be served. Default `8080`
-- `TRANSFERWISER_TWHOST` is the transferwise host. Default `sandbox.transferwise.tech`
-- `TRANSFERWISER_TWLOGINREDIRECT` is the url to return when linking with a transferwise account.
-- `TRANSFERWISER_TWCLIENTID` is the client_id sent to transferwise authentication requests. Default `endiangroup/transferwiser`
+- `TRANSFERWISER_TWAPITOKEN` is the transferwise API Token.
 - `TRANSFERWISER_REDISADDR` the addr to find redis. Default `localhost:6379`
 
 

@@ -10,29 +10,6 @@ type TransferwiseAPI struct {
 	mock.Mock
 }
 
-// RefreshToken provides a mock function with given fields: code
-func (_m *TransferwiseAPI) RefreshToken(code string) (*core.RefreshTokenData, error) {
-	ret := _m.Called(code)
-
-	var r0 *core.RefreshTokenData
-	if rf, ok := ret.Get(0).(func(string) *core.RefreshTokenData); ok {
-		r0 = rf(code)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*core.RefreshTokenData)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(code)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // Transfers provides a mock function with given fields:
 func (_m *TransferwiseAPI) Transfers() ([]*core.Transfer, error) {
 	ret := _m.Called()

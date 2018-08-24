@@ -1,5 +1,4 @@
-export TRANSFERWISER_TWLOGINREDIRECT ?= http://localhost:3000/oauth/callback
-export TRANSFERWISER_REDISADDR ?= localhost:16379
+export TRANSFERWISER_TWAPITOKEN ?= abcd123
 
 .PHONY: integration
 integration: 

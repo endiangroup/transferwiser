@@ -10,14 +10,14 @@ import (
 )
 
 type server struct {
-	logger              *zap.Logger
-	transferwiseService *core.TransferwiseService
+	logger          *zap.Logger
+	transferwiseAPI core.TransferwiseAPI
 }
 
-func NewServer(logger *zap.Logger, transferwiseService *core.TransferwiseService) *server {
+func NewServer(logger *zap.Logger, transferwiseAPI core.TransferwiseAPI) *server {
 	return &server{
-		logger:              logger,
-		transferwiseService: transferwiseService,
+		logger:          logger,
+		transferwiseAPI: transferwiseAPI,
 	}
 }
 
@@ -32,28 +32,13 @@ func (s *server) Run(port int) error {
 func (s *server) MainHandler() *echo.Echo {
 	e := echo.New()
 	e.Use(s.authenticate)
-	e.GET("/oauth/link", s.link, s.requireUsername("admin"))
-	e.GET("/oauth/callback", s.callback, s.requireUsername("admin"))
+	e.GET("/transfers.csv", s.transfersCSV)
 	return e
 }
 
-func (s *server) link(c echo.Context) error {
-	return c.Redirect(301, s.transferwiseService.RedirectUrl())
-}
-
-func (s *server) callback(c echo.Context) error {
-	transferwiseRefreshToken := c.QueryParam("code")
-	twData, err := s.transferwiseService.Api.RefreshToken(transferwiseRefreshToken)
-	if err != nil {
-		s.logger.Error("error refreshing transferwise code", zap.Error(err))
-		return echo.NewHTTPError(500, "error confirming transferwise authentication")
-	}
-	err = s.transferwiseService.UseAuthentication(twData)
-	if err != nil {
-		s.logger.Error("error using authentication", zap.Error(err))
-		return echo.NewHTTPError(500, "error configuring transferwise authentication")
-	}
-	return c.Redirect(301, "/")
+func (s *server) transfersCSV(c echo.Context) error {
+	c.Response().Header().Set(echo.HeaderContentType, "text/csv")
+	return c.String(200, "")
 }
 
 func (s *server) authenticate(next echo.HandlerFunc) echo.HandlerFunc {
@@ -76,7 +61,7 @@ func (s *server) authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 				break
 			}
 		}
-		if dnHeader == "" {
+		if cn == "" {
 			s.logger.Error("DN header don't contain DN", zap.String("dn", dnHeader))
 			return c.String(401, "Unauthorized")
 		}
