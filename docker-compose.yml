@@ -6,14 +6,9 @@ services:
     build: 
       context: .
       dockerfile: ./transferwiser.Dockerfile
-    depends_on:
-      - redis
     environment: 
       - TRANSFERWISER_PORT=3000
-      - TRANSFERWISER_REDISADDR=redis:6379
       - TRANSFERWISER_TWHOST=sandbox.transferwise.tech
-      - TRANSFERWISER_TWLOGINREDIRECT=http://localhost:8443/oauth/callback
-      - TRANSFERWISER_TWCLIENTID=endiangroup/transferwiser_dev
 
   ssl_proxy:
     image: endiangroup/transferwiser_proxy:latest

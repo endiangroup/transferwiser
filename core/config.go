@@ -8,6 +8,8 @@ import (
 
 type config struct {
 	Port       int    `default:"8080"`
+	TwHost     string `default:"api.sandbox.transferwise.tech"`
+	TwProfile  string `required:"true"`
 	TwAPIToken string `required:"true"`
 }
 

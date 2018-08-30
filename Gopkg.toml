@@ -44,3 +44,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/gocarina/gocsv"
+
+[[constraint]]
+  name = "gopkg.in/h2non/gock.v1"
+  version = "1.0.9"

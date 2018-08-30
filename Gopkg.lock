@@ -47,6 +47,12 @@
   version = "v0.0.3"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
@@ -120,9 +126,15 @@
   packages = ["unix"]
   revision = "904bdc257025c7b3f43c19360ad3ab85783fad78"
 
+[[projects]]
+  name = "gopkg.in/h2non/gock.v1"
+  packages = ["."]
+  revision = "4692cba4394f79372bfe85996501ad43db9d82e0"
+  version = "v1.0.9"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8ec1c3a7abe7a2eee5a19b3a80f2062a59c1126c9445858bb68b157ce67e67e6"
+  inputs-digest = "d5eb74775700a3a344524f241a3a853c67160afc1e9d4a6b358c11bfa9fdaf8e"
   solver-name = "gps-cdcl"
   solver-version = 1
