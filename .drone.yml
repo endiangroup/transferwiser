@@ -13,7 +13,10 @@ pipeline:
     image: golang:1.10
     commands:
       - make dep
+      - dep ensure --vendor-only
       - make test
+    # when:
+    #   event: [pull_request]
 
   # docker:
   #   image: kowalatech/drone-docker

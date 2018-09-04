@@ -122,6 +122,18 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/net"
+  packages = ["context"]
+  revision = "8a410e7b638dca158bf9e766925842f6651ff828"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sync"
+  packages = ["errgroup"]
+  revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
   revision = "904bdc257025c7b3f43c19360ad3ab85783fad78"
@@ -135,6 +147,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d5eb74775700a3a344524f241a3a853c67160afc1e9d4a6b358c11bfa9fdaf8e"
+  inputs-digest = "786536b831215297924c8768223ff682eefe8e3adb329c22854891a071c28d04"
   solver-name = "gps-cdcl"
   solver-version = 1
