@@ -1,9 +1,5 @@
 export TRANSFERWISER_TWAPITOKEN ?= abcd123
 
-.PHONY: integration
-integration: 
-	go test ./... -tags="integration"
-
 .PHONY: test
 test: 
 	go test ./...
@@ -35,3 +31,11 @@ client_cert:
 	rm proxy/client.key
 	mv proxy/temp.key proxy/client.key
 	openssl pkcs12 -export -clcerts -in proxy/client.crt -inkey proxy/client.key -out proxy/client.p12
+
+.PHONY: dep
+DEP_BIN := $(shell command -v dep 2> /dev/null)
+dep:
+ifndef DEP_BIN
+	@echo "Installing dep..."
+	@go get github.com/golang/dep/cmd/dep
+endif

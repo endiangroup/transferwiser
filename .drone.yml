@@ -1,0 +1,50 @@
+workspace:
+  base: /go
+  path: src/github.com/endiangroup/transferwiser
+  
+clone:
+  git:
+    image: plugins/git:next
+    pull: true
+    tags: true
+
+pipeline:
+  test:
+    image: golang:1.10
+    commands:
+      - make dep
+      - make test
+    when:
+      event: [pull_request]
+
+  # docker:
+  #   image: kowalatech/drone-docker
+  #   context: /go/src/github.com/endiangroup/transferwiser
+  #   repo: endian/transferwiser
+  #   secrets: [ docker_username, docker_password ]
+  #   auto_tag: true
+  #   privileged: true
+  #   when:
+  #     branch: [develop,master]
+
+  # deploy-stage:
+  #   image: joshdvir/drone-ecs-deploy
+  #   cluster: internal
+  #   service: stage_ndn_tw
+  #   image_name: endian/transferwiser:develop
+  #   aws_region: eu-west-2
+  #   max: 100
+  #   min: 50
+  #   when:
+  #     branch: [develop]
+
+  # deploy-prod:
+  #   image: joshdvir/drone-ecs-deploy
+  #   cluster: internal
+  #   service: ndn_tw
+  #   image_name: endian/transferwiser:latest
+  #   aws_region: eu-west-2
+  #   max: 100
+  #   min: 50
+  #   when:
+  #     event: [deployment]
