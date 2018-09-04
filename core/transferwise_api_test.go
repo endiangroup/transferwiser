@@ -160,6 +160,7 @@ func TestTransfers_SimpleList(t *testing.T) {
 		Get("/v1/transfers").
 		MatchParam("offset", "0").
 		MatchParam("limit", "20").
+		MatchParam("createdDateStart", getFirstOfTwoMonthsAgo(time.Now())).
 		MatchHeader("Authorization", fmt.Sprintf("Bearer %v", GetConfig().TwAPIToken)).
 		Reply(200).
 		Type("application/json").
@@ -243,6 +244,7 @@ func TestTransfers_MultipleTransfers(t *testing.T) {
 		Get("/v1/transfers").
 		MatchParam("offset", "0").
 		MatchParam("limit", "20").
+		MatchParam("createdDateStart", getFirstOfTwoMonthsAgo(time.Now())).
 		MatchHeader("Authorization", fmt.Sprintf("Bearer %v", GetConfig().TwAPIToken)).
 		Reply(200).
 		Type("application/json").
@@ -290,4 +292,12 @@ func TestTransfers_MultipleTransfers(t *testing.T) {
 	require.Equal(t, "EUR", transfer.TargetCurrency)
 	// require.Equal(t, , transfer.Fee)
 	require.Equal(t, 1.1119, transfer.ExchangeRate)
+}
+
+func TestGetFirstOfTwoMonthsAgo(t *testing.T) {
+	require.Equal(t, "2016-1-1", getFirstOfTwoMonthsAgo(time.Date(2016, 3, 15, 1, 1, 1, 1, time.UTC)))
+	require.Equal(t, "2016-1-1", getFirstOfTwoMonthsAgo(time.Date(2016, 3, 1, 1, 1, 1, 1, time.UTC)))
+	require.Equal(t, "2015-12-1", getFirstOfTwoMonthsAgo(time.Date(2016, 2, 1, 1, 1, 1, 1, time.UTC)))
+	require.Equal(t, "2015-12-1", getFirstOfTwoMonthsAgo(time.Date(2016, 2, 29, 1, 1, 1, 1, time.UTC)))
+	require.Equal(t, "2014-12-1", getFirstOfTwoMonthsAgo(time.Date(2015, 2, 28, 23, 59, 59, 9999, time.UTC)))
 }

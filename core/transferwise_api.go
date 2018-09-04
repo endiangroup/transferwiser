@@ -83,10 +83,11 @@ func NewTransferwiseAPI(host, token string) *transferwiseAPI {
 }
 
 func (tw *transferwiseAPI) Transfers() ([]*Transfer, error) {
+	createdDateStart := getFirstOfTwoMonthsAgo(time.Now())
 	httpClient := http.Client{
 		Timeout: time.Second * 20,
 	}
-	twTransfers, err := tw.getTransfers(httpClient, 0, 20)
+	twTransfers, err := tw.getTransfers(httpClient, 0, 20, createdDateStart)
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting transferwise transfers")
 	}
@@ -112,8 +113,8 @@ func (tw *transferwiseAPI) Transfers() ([]*Transfer, error) {
 	return transfers, nil
 }
 
-func (tw *transferwiseAPI) getTransfers(httpClient http.Client, offset, limit int) ([]*transferwiseTransfer, error) {
-	url := fmt.Sprintf("https://%v/v1/transfers?offset=%d&limit=%d", tw.host, offset, limit)
+func (tw *transferwiseAPI) getTransfers(httpClient http.Client, offset, limit int, createdDateStart string) ([]*transferwiseTransfer, error) {
+	url := fmt.Sprintf("https://%v/v1/transfers?offset=%d&limit=%d&createdDateStart=%v", tw.host, offset, limit, createdDateStart)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error preparing transferwise transfers request")
@@ -171,4 +172,9 @@ func (tw *transferwiseAPI) getAccountNames(httpClient http.Client, idsSet map[in
 		return nil, err
 	}
 	return names, nil
+}
+
+func getFirstOfTwoMonthsAgo(t time.Time) string {
+	twoMonthsAgo := t.AddDate(0, -2, 0)
+	return fmt.Sprintf("%v-%v-%v", twoMonthsAgo.Year(), int(twoMonthsAgo.Month()), 1)
 }
