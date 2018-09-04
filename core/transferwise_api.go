@@ -83,25 +83,12 @@ func NewTransferwiseAPI(host, token string) *transferwiseAPI {
 }
 
 func (tw *transferwiseAPI) Transfers() ([]*Transfer, error) {
-	url := fmt.Sprintf("https://%v/v1/transfers?offset=0&limit=20", tw.host)
 	httpClient := http.Client{
 		Timeout: time.Second * 20,
 	}
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	twTransfers, err := tw.getTransfers(httpClient, 0, 20)
 	if err != nil {
-		return nil, errors.Wrap(err, "error preparing transferwise transfers request")
-	}
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", tw.apiToken))
-	res, err := httpClient.Do(req)
-	if err != nil {
-		return nil, errors.Wrap(err, "error sending transferwise transfers request")
-	}
-
-	defer res.Body.Close()
-	twTransfers := []*transferwiseTransfer{}
-	err = json.NewDecoder(res.Body).Decode(&twTransfers)
-	if err != nil {
-		return nil, errors.Wrap(err, "error decoding transferwise transfers request")
+		return nil, errors.Wrap(err, "error getting transferwise transfers")
 	}
 
 	accounts := map[int64]bool{}
@@ -123,6 +110,27 @@ func (tw *transferwiseAPI) Transfers() ([]*Transfer, error) {
 	}
 
 	return transfers, nil
+}
+
+func (tw *transferwiseAPI) getTransfers(httpClient http.Client, offset, limit int) ([]*transferwiseTransfer, error) {
+	url := fmt.Sprintf("https://%v/v1/transfers?offset=%d&limit=%d", tw.host, offset, limit)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "error preparing transferwise transfers request")
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", tw.apiToken))
+	res, err := httpClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "error sending transferwise transfers request")
+	}
+
+	defer res.Body.Close()
+	twTransfers := []*transferwiseTransfer{}
+	err = json.NewDecoder(res.Body).Decode(&twTransfers)
+	if err != nil {
+		return nil, errors.Wrap(err, "error decoding transferwise transfers request")
+	}
+	return twTransfers, nil
 }
 
 func (tw *transferwiseAPI) getAccountNames(httpClient http.Client, idsSet map[int64]bool) (map[int64]string, error) {
