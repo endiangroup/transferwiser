@@ -33,7 +33,7 @@ func (s *server) Run(port int) error {
 
 func (s *server) MainHandler() *echo.Echo {
 	e := echo.New()
-	// e.Use(s.authenticate)
+	e.Use(s.authenticate)
 	e.GET("/transfers.csv", s.transfersCSV)
 	return e
 }
