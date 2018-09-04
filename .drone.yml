@@ -14,8 +14,6 @@ pipeline:
     commands:
       - make dep
       - make test
-    when:
-      event: [pull_request]
 
   # docker:
   #   image: kowalatech/drone-docker
