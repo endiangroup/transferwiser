@@ -18,15 +18,15 @@ pipeline:
     # when:
     #   event: [pull_request]
 
-  # docker:
-  #   image: kowalatech/drone-docker
-  #   context: /go/src/github.com/endiangroup/transferwiser
-  #   repo: endian/transferwiser
-  #   secrets: [ docker_username, docker_password ]
-  #   auto_tag: true
-  #   privileged: true
-  #   when:
-  #     branch: [develop,master]
+  docker:
+    image: kowalatech/drone-docker
+    context: /go/src/github.com/endiangroup/transferwiser
+    repo: endian/transferwiser
+    secrets: [ docker_username, docker_password ]
+    auto_tag: true
+    privileged: true
+    when:
+      branch: [develop,master]
 
   # deploy-stage:
   #   image: joshdvir/drone-ecs-deploy
