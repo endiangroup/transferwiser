@@ -5,20 +5,7 @@ services:
     image: endiangroup/transferwiser:latest
     build: 
       context: .
-      dockerfile: ./transferwiser.Dockerfile
+      dockerfile: ./Dockerfile
     environment: 
       - TRANSFERWISER_PORT=3000
       - TRANSFERWISER_TWHOST=sandbox.transferwise.tech
-
-  ssl_proxy:
-    image: endiangroup/transferwiser_proxy:latest
-    build: 
-      context: .
-      dockerfile: ./proxy.Dockerfile
-    depends_on:
-      - transferwiser
-    volumes:
-      - ./proxy:/etc/nginx/certs
-    ports:
-      - 8080:80
-      - 8443:443
