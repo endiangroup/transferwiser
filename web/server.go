@@ -1,6 +1,9 @@
 package web
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -9,6 +12,7 @@ import (
 	"github.com/gocarina/gocsv"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 type server struct {
@@ -25,10 +29,26 @@ func NewServer(logger *zap.Logger, transferwiseAPI core.TransferwiseAPI) *server
 
 func (s *server) Run(port int) error {
 	handler := s.MainHandler()
+	tlsServer := handler.TLSServer
+	tlsServer.TLSConfig = new(tls.Config)
 
-	addr := fmt.Sprintf(":%v", port)
-	s.logger.Info("Listening", zap.String("addr", addr))
-	return handler.Start(addr)
+	// Automatic let's encrypt
+	handler.AutoTLSManager.Cache = autocert.DirCache(".cache")
+	tlsServer.TLSConfig.GetCertificate = handler.AutoTLSManager.GetCertificate
+	go http.ListenAndServe(":http", handler.AutoTLSManager.HTTPHandler(nil))
+
+	certpool := x509.NewCertPool()
+	if !certpool.AppendCertsFromPEM(cert) {
+		return errors.New("error loading ca certificate")
+	}
+
+	tlsServer.TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
+	tlsServer.TLSConfig.ClientCAs = certpool
+	tlsServer.TLSConfig.NextProtos = append(tlsServer.TLSConfig.NextProtos, "h2")
+	tlsServer.Addr = fmt.Sprintf(":%v", port)
+
+	s.logger.Info("Listening", zap.String("addr", tlsServer.Addr))
+	return handler.StartServer(handler.TLSServer)
 }
 
 func (s *server) MainHandler() *echo.Echo {

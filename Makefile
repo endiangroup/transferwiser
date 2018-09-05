@@ -13,7 +13,7 @@ docker_build:
 .PHONY: ca_cert
 ca_cert:
 	openssl genrsa -des3 -out proxy/ca.key 4096
-	openssl req -new -x509 -days 365 -key proxy/ca.key -out proxy/ca.crt
+	openssl req -x509 -new -nodes -key proxy/ca.key -sha256 -days 1024 -out proxy/ca.crt
 
 .PHONY: server_cert
 server_cert:
@@ -33,6 +33,7 @@ client_cert:
 	rm proxy/client.key
 	mv proxy/temp.key proxy/client.key
 	openssl pkcs12 -export -clcerts -in proxy/client.crt -inkey proxy/client.key -out proxy/client.p12
+	openssl pkcs12 -in proxy/client.p12 -out proxy/client.pem
 
 .PHONY: dep
 DEP_BIN := $(shell command -v dep 2> /dev/null)

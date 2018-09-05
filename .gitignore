@@ -3,3 +3,4 @@ proxy/*.crt
 proxy/*.key
 proxy/*.csr
 proxy/*.p12
+proxy/*.pem
