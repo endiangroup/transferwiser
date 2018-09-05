@@ -7,10 +7,11 @@ import (
 )
 
 type config struct {
-	Port       int    `default:"8080"`
-	TwHost     string `default:"api.sandbox.transferwise.tech"`
-	TwProfile  string `required:"true"`
-	TwAPIToken string `required:"true"`
+	Port            int    `default:"8080"`
+	LetsEncryptPort int    `default:"8081"`
+	TwHost          string `default:"api.sandbox.transferwise.tech"`
+	TwProfile       string `required:"true"`
+	TwAPIToken      string `required:"true"`
 }
 
 var configInstance *config

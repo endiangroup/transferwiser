@@ -27,7 +27,7 @@ func NewServer(logger *zap.Logger, transferwiseAPI core.TransferwiseAPI) *server
 	}
 }
 
-func (s *server) Run(port int) error {
+func (s *server) Run(port, letsencryptPort int) error {
 	handler := s.MainHandler()
 	tlsServer := handler.TLSServer
 	tlsServer.TLSConfig = new(tls.Config)
@@ -35,7 +35,7 @@ func (s *server) Run(port int) error {
 	// Automatic let's encrypt
 	handler.AutoTLSManager.Cache = autocert.DirCache(".cache")
 	tlsServer.TLSConfig.GetCertificate = handler.AutoTLSManager.GetCertificate
-	go http.ListenAndServe(":http", handler.AutoTLSManager.HTTPHandler(nil))
+	go http.ListenAndServe(fmt.Sprintf(":%v", letsencryptPort), handler.AutoTLSManager.HTTPHandler(nil))
 
 	certpool := x509.NewCertPool()
 	if !certpool.AppendCertsFromPEM(cert) {
