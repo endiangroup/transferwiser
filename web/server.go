@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/endiangroup/transferwiser/core"
 	"github.com/gocarina/gocsv"
@@ -72,26 +71,20 @@ func (s *server) transfersCSV(c echo.Context) error {
 
 func (s *server) authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		verified := c.Request().Header.Get("VERIFIED")
-		if verified != "SUCCESS" {
-			s.logger.Error("client certificate not verified", zap.String("verified", verified))
+		req := c.Request()
+		if req.TLS == nil {
+			s.logger.Error("missing client certificate")
 			return c.String(401, "Unauthorized")
 		}
-		dnHeader := c.Request().Header.Get("DN")
-		if dnHeader == "" {
-			s.logger.Error("headers don't contain DN")
+		if len(req.TLS.PeerCertificates) == 0 {
+			s.logger.Error("missing client certificate")
 			return c.String(401, "Unauthorized")
 		}
-		parts := strings.Split(dnHeader, ",")
-		var cn string
-		for _, part := range parts {
-			if strings.HasPrefix(part, "CN=") {
-				cn = strings.TrimPrefix(part, "CN=")
-				break
-			}
-		}
+
+		cert := req.TLS.PeerCertificates[0]
+		cn := cert.Subject.CommonName
 		if cn == "" {
-			s.logger.Error("DN header don't contain DN", zap.String("dn", dnHeader))
+			s.logger.Error("client certificate doesn't contain CommonName (CN)", zap.String("subject", cert.Subject.String()))
 			return c.String(401, "Unauthorized")
 		}
 		c.Set("username", cn)
