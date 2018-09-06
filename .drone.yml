@@ -26,7 +26,7 @@ pipeline:
     auto_tag: true
     privileged: true
     when:
-      event: [push, tag]
+      event: [push]
       branch: [develop,master]
 
   # deploy-stage:
@@ -40,14 +40,14 @@ pipeline:
   #   when:
   #     branch: [develop]
 
-  # deploy-prod:
-  #   image: joshdvir/drone-ecs-deploy
-  #   cluster: internal
-  #   service: ndn_tw
-  #   image_name: endian/transferwiser:latest
-  #   aws_region: eu-west-2
-  #   max: 100
-  #   min: 50
-  #   when:
-  #     event: [deployment]
-  #     environment: production
+  deploy-prod:
+    image: joshdvir/drone-ecs-deploy
+    cluster: internal
+    service: transferwiser
+    image_name: endian/transferwiser:latest
+    aws_region: eu-west-2
+    max: 100
+    min: 50
+    when:
+      event: [push]
+      branch: [master]
