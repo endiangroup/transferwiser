@@ -47,7 +47,7 @@ func (s *server) Run(port, letsencryptPort int) error {
 	tlsServer.Addr = fmt.Sprintf(":%v", port)
 
 	s.logger.Info("Listening", zap.String("addr", tlsServer.Addr))
-	return handler.StartServer(handler.TLSServer)
+	return handler.StartServer(tlsServer)
 }
 
 func (s *server) MainHandler() *echo.Echo {
