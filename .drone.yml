@@ -30,7 +30,7 @@ pipeline:
       branch: [develop,master]
 
   # deploy-stage:
-  #   image: joshdvir/drone-ecs-deploy
+  #   image: combor/drone-ecs-deploy
   #   cluster: internal
   #   service: stage_ndn_tw
   #   image_name: endian/transferwiser:develop
@@ -41,7 +41,7 @@ pipeline:
   #     branch: [develop]
 
   deploy-prod:
-    image: joshdvir/drone-ecs-deploy
+    image: combor/drone-ecs-deploy
     cluster: internal
     service: transferwiser
     image_name: endian/transferwiser:latest
