@@ -2,6 +2,19 @@
 
 
 [[projects]]
+  name = "github.com/cloudflare/cfssl"
+  packages = [
+    "crypto/pkcs7",
+    "errors",
+    "helpers",
+    "helpers/derhelpers",
+    "log",
+    "revoke"
+  ]
+  revision = "5d63dbd981b5c408effbb58c442d54761ff94fbd"
+  version = "1.3.2"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
@@ -12,6 +25,17 @@
   name = "github.com/gocarina/gocsv"
   packages = ["."]
   revision = "b8c38cb1ba36857e7f9c1ef75c6e59e11ed93e37"
+
+[[projects]]
+  name = "github.com/google/certificate-transparency-go"
+  packages = [
+    ".",
+    "asn1",
+    "tls",
+    "x509",
+    "x509/pkix"
+  ]
+  revision = "5ab67e519c93568ac3ee50fd6772a5bcf8aa460d"
 
 [[projects]]
   name = "github.com/kelseyhightower/envconfig"
@@ -116,7 +140,12 @@
   name = "golang.org/x/crypto"
   packages = [
     "acme",
-    "acme/autocert"
+    "acme/autocert",
+    "cryptobyte",
+    "cryptobyte/asn1",
+    "ocsp",
+    "pkcs12",
+    "pkcs12/internal/rc2"
   ]
   revision = "de0752318171da717af4ce24d0a2e8626afaeb11"
 
@@ -147,6 +176,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "786536b831215297924c8768223ff682eefe8e3adb329c22854891a071c28d04"
+  inputs-digest = "209be3690bc07e4e037ed2ce8d40110979d7ed3f47ee364e249a5778755b3a3c"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/cloudflare/cfssl/revoke"
 	"github.com/endiangroup/transferwiser/core"
 	"github.com/gocarina/gocsv"
 	"github.com/labstack/echo"
@@ -87,6 +88,12 @@ func (s *server) authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		cert := req.TLS.PeerCertificates[0]
+		revoked, ok := revoke.VerifyCertificate(cert)
+		if revoked || !ok {
+			s.logger.Error("client certificate is revoked or incorrect", zap.Bool("revoked", revoked), zap.Bool("ok", ok))
+			return c.String(401, "Unauthorized")
+		}
+
 		cn := cert.Subject.CommonName
 		if cn == "" {
 			s.logger.Error("client certificate doesn't contain CommonName (CN)", zap.String("subject", cert.Subject.String()))
