@@ -26,6 +26,7 @@ pipeline:
     auto_tag: true
     privileged: true
     when:
+      event: [push, tag]
       branch: [develop,master]
 
   # deploy-stage:
@@ -49,3 +50,4 @@ pipeline:
   #   min: 50
   #   when:
   #     event: [deployment]
+  #     environment: production
