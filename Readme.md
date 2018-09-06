@@ -6,9 +6,12 @@ This service acts as a read-only interface for users to see the list of transact
 
 All configuration uses environment variables:
 
+- `TRANSFERWISER_ENV` is the environment to use. Set it to `production` to use the production CA. Default `dev`.
 - `TRANSFERWISER_PORT` is the http port where the service will be served. Default `8080`
-- `TRANSFERWISER_TWAPITOKEN` is the transferwise API Token.
-- `TRANSFERWISER_REDISADDR` the addr to find redis. Default `localhost:6379`
+- `TRANSFERWISER_LETSENCRYPTPORT` is the http port where letsencrypt will run the challenges. Default `8081`
+- `TRANSFERWISER_TWHOST` is the transferwise host to use. Default `api.sandbox.transferwise.tech`
+- `TRANSFERWISER_TWAPITOKEN` is the transferwise API Token. Required.
+- `TRANSFERWISER_TWPROFILE` is the profile ID of the account in transferwise. Required.
 
 
 # Mutual tls authentication reference
