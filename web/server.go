@@ -1,14 +1,17 @@
 package web
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/endiangroup/transferwiser/core"
 	"github.com/gocarina/gocsv"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 type server struct {
@@ -23,12 +26,28 @@ func NewServer(logger *zap.Logger, transferwiseAPI core.TransferwiseAPI) *server
 	}
 }
 
-func (s *server) Run(port int) error {
+func (s *server) Run(port, letsencryptPort int) error {
 	handler := s.MainHandler()
+	tlsServer := handler.TLSServer
+	tlsServer.TLSConfig = new(tls.Config)
 
-	addr := fmt.Sprintf(":%v", port)
-	s.logger.Info("Listening", zap.String("addr", addr))
-	return handler.Start(addr)
+	// Automatic let's encrypt
+	handler.AutoTLSManager.Cache = autocert.DirCache(".cache")
+	tlsServer.TLSConfig.GetCertificate = handler.AutoTLSManager.GetCertificate
+	go http.ListenAndServe(fmt.Sprintf(":%v", letsencryptPort), handler.AutoTLSManager.HTTPHandler(nil))
+
+	certpool := x509.NewCertPool()
+	if !certpool.AppendCertsFromPEM(cert) {
+		return errors.New("error loading ca certificate")
+	}
+
+	tlsServer.TLSConfig.ClientAuth = tls.RequireAndVerifyClientCert
+	tlsServer.TLSConfig.ClientCAs = certpool
+	tlsServer.TLSConfig.NextProtos = append(tlsServer.TLSConfig.NextProtos, "h2")
+	tlsServer.Addr = fmt.Sprintf(":%v", port)
+
+	s.logger.Info("Listening", zap.String("addr", tlsServer.Addr))
+	return handler.StartServer(tlsServer)
 }
 
 func (s *server) MainHandler() *echo.Echo {
@@ -52,26 +71,20 @@ func (s *server) transfersCSV(c echo.Context) error {
 
 func (s *server) authenticate(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		verified := c.Request().Header.Get("VERIFIED")
-		if verified != "SUCCESS" {
-			s.logger.Error("client certificate not verified", zap.String("verified", verified))
+		req := c.Request()
+		if req.TLS == nil {
+			s.logger.Error("missing client certificate")
 			return c.String(401, "Unauthorized")
 		}
-		dnHeader := c.Request().Header.Get("DN")
-		if dnHeader == "" {
-			s.logger.Error("headers don't contain DN")
+		if len(req.TLS.PeerCertificates) == 0 {
+			s.logger.Error("missing client certificate")
 			return c.String(401, "Unauthorized")
 		}
-		parts := strings.Split(dnHeader, ",")
-		var cn string
-		for _, part := range parts {
-			if strings.HasPrefix(part, "CN=") {
-				cn = strings.TrimPrefix(part, "CN=")
-				break
-			}
-		}
+
+		cert := req.TLS.PeerCertificates[0]
+		cn := cert.Subject.CommonName
 		if cn == "" {
-			s.logger.Error("DN header don't contain DN", zap.String("dn", dnHeader))
+			s.logger.Error("client certificate doesn't contain CommonName (CN)", zap.String("subject", cert.Subject.String()))
 			return c.String(401, "Unauthorized")
 		}
 		c.Set("username", cn)
