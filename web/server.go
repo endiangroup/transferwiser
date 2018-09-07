@@ -27,7 +27,7 @@ func NewServer(logger *zap.Logger, transferwiseAPI core.TransferwiseAPI) *server
 	}
 }
 
-func (s *server) Run(env string, port, letsencryptPort int) error {
+func (s *server) Run(env string, port, letsencryptPort int, caCert string) error {
 	handler := s.MainHandler()
 	tlsServer := handler.TLSServer
 	tlsServer.TLSConfig = new(tls.Config)
@@ -37,13 +37,8 @@ func (s *server) Run(env string, port, letsencryptPort int) error {
 	tlsServer.TLSConfig.GetCertificate = handler.AutoTLSManager.GetCertificate
 	go http.ListenAndServe(fmt.Sprintf(":%v", letsencryptPort), handler.AutoTLSManager.HTTPHandler(nil))
 
-	caCert, found := certs[env]
-	if !found {
-		return fmt.Errorf("no CA certificate found for %v environment", env)
-	}
-
 	certpool := x509.NewCertPool()
-	if !certpool.AppendCertsFromPEM(caCert) {
+	if !certpool.AppendCertsFromPEM([]byte(caCert)) {
 		return errors.New("error loading ca certificate")
 	}
 
