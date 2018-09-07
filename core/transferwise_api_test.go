@@ -160,6 +160,7 @@ func TestTransfers_SimpleList(t *testing.T) {
 		Get("/v1/transfers").
 		MatchParam("offset", "0").
 		MatchParam("limit", "20").
+		MatchParam("profile", GetConfig().TwProfile).
 		MatchParam("createdDateStart", getFirstOfTwoMonthsAgo(time.Now())).
 		MatchHeader("Authorization", fmt.Sprintf("Bearer %v", GetConfig().TwAPIToken)).
 		Reply(200).
@@ -173,7 +174,7 @@ func TestTransfers_SimpleList(t *testing.T) {
 		Type("application/json").
 		BodyString(mockedAccounts[1])
 
-	api := NewTransferwiseAPI(GetConfig().TwHost, GetConfig().TwAPIToken)
+	api := NewTransferwiseAPI(GetConfig().TwHost, GetConfig().TwProfile, GetConfig().TwAPIToken)
 	transfers, err := api.Transfers()
 	require.NoError(t, err)
 	require.Len(t, transfers, 1)
@@ -244,6 +245,7 @@ func TestTransfers_MultipleTransfers(t *testing.T) {
 		Get("/v1/transfers").
 		MatchParam("offset", "0").
 		MatchParam("limit", "20").
+		MatchParam("profile", GetConfig().TwProfile).
 		MatchParam("createdDateStart", getFirstOfTwoMonthsAgo(time.Now())).
 		MatchHeader("Authorization", fmt.Sprintf("Bearer %v", GetConfig().TwAPIToken)).
 		Reply(200).
@@ -264,7 +266,7 @@ func TestTransfers_MultipleTransfers(t *testing.T) {
 		Type("application/json").
 		BodyString(mockedAccounts[2])
 
-	api := NewTransferwiseAPI(GetConfig().TwHost, GetConfig().TwAPIToken)
+	api := NewTransferwiseAPI(GetConfig().TwHost, GetConfig().TwProfile, GetConfig().TwAPIToken)
 	transfers, err := api.Transfers()
 	require.NoError(t, err)
 	require.Len(t, transfers, 2)
@@ -295,9 +297,9 @@ func TestTransfers_MultipleTransfers(t *testing.T) {
 }
 
 func TestGetFirstOfTwoMonthsAgo(t *testing.T) {
-	require.Equal(t, "2016-1-1", getFirstOfTwoMonthsAgo(time.Date(2016, 3, 15, 1, 1, 1, 1, time.UTC)))
-	require.Equal(t, "2016-1-1", getFirstOfTwoMonthsAgo(time.Date(2016, 3, 1, 1, 1, 1, 1, time.UTC)))
-	require.Equal(t, "2015-12-1", getFirstOfTwoMonthsAgo(time.Date(2016, 2, 1, 1, 1, 1, 1, time.UTC)))
-	require.Equal(t, "2015-12-1", getFirstOfTwoMonthsAgo(time.Date(2016, 2, 29, 1, 1, 1, 1, time.UTC)))
-	require.Equal(t, "2014-12-1", getFirstOfTwoMonthsAgo(time.Date(2015, 2, 28, 23, 59, 59, 9999, time.UTC)))
+	require.Equal(t, "2016-01-01", getFirstOfTwoMonthsAgo(time.Date(2016, 3, 15, 1, 1, 1, 1, time.UTC)))
+	require.Equal(t, "2016-01-01", getFirstOfTwoMonthsAgo(time.Date(2016, 3, 1, 1, 1, 1, 1, time.UTC)))
+	require.Equal(t, "2015-12-01", getFirstOfTwoMonthsAgo(time.Date(2016, 2, 1, 1, 1, 1, 1, time.UTC)))
+	require.Equal(t, "2015-12-01", getFirstOfTwoMonthsAgo(time.Date(2016, 2, 29, 1, 1, 1, 1, time.UTC)))
+	require.Equal(t, "2014-12-01", getFirstOfTwoMonthsAgo(time.Date(2015, 2, 28, 23, 59, 59, 9999, time.UTC)))
 }

@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"sync"
 	"time"
@@ -22,6 +23,7 @@ type TransferwiseAPI interface {
 
 type transferwiseAPI struct {
 	host     string
+	profile  string
 	apiToken string
 }
 
@@ -75,9 +77,10 @@ func (twTransfer *transferwiseTransfer) toTransfer() (*Transfer, error) {
 	return transfer, nil
 }
 
-func NewTransferwiseAPI(host, token string) *transferwiseAPI {
+func NewTransferwiseAPI(host, profile, token string) *transferwiseAPI {
 	return &transferwiseAPI{
 		host:     host,
+		profile:  profile,
 		apiToken: token,
 	}
 }
@@ -114,7 +117,7 @@ func (tw *transferwiseAPI) Transfers() ([]*Transfer, error) {
 }
 
 func (tw *transferwiseAPI) getTransfers(httpClient http.Client, offset, limit int, createdDateStart string) ([]*transferwiseTransfer, error) {
-	url := fmt.Sprintf("https://%v/v1/transfers?offset=%d&limit=%d&createdDateStart=%v", tw.host, offset, limit, createdDateStart)
+	url := fmt.Sprintf("https://%v/v1/transfers?profile=%v&offset=%d&limit=%d&createdDateStart=%v", tw.host, tw.profile, offset, limit, createdDateStart)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error preparing transferwise transfers request")
@@ -126,6 +129,15 @@ func (tw *transferwiseAPI) getTransfers(httpClient http.Client, offset, limit in
 	}
 
 	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "error reading request body")
+		}
+		return nil, fmt.Errorf("error response code (%v) returned by transferwise: %v", res.StatusCode, string(body))
+	}
+
 	twTransfers := []*transferwiseTransfer{}
 	err = json.NewDecoder(res.Body).Decode(&twTransfers)
 	if err != nil {
@@ -176,5 +188,5 @@ func (tw *transferwiseAPI) getAccountNames(httpClient http.Client, idsSet map[in
 
 func getFirstOfTwoMonthsAgo(t time.Time) string {
 	twoMonthsAgo := t.AddDate(0, -2, 0)
-	return fmt.Sprintf("%v-%v-%v", twoMonthsAgo.Year(), int(twoMonthsAgo.Month()), 1)
+	return fmt.Sprintf("%v-%02d-%02d", twoMonthsAgo.Year(), int(twoMonthsAgo.Month()), 1)
 }

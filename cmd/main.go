@@ -15,7 +15,7 @@ func main() {
 
 	config := core.GetConfig()
 
-	transferwiseAPI := core.NewTransferwiseAPI(config.TwHost, config.TwAPIToken)
+	transferwiseAPI := core.NewTransferwiseAPI(config.TwHost, config.TwProfile, config.TwAPIToken)
 
 	webServer := web.NewServer(logger, transferwiseAPI)
 	err = webServer.Run(config.Env, config.Port, config.LetsEncryptPort)
