@@ -3,9 +3,10 @@ package web
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/pkg/errors"
 
 	"github.com/cloudflare/cfssl/revoke"
 	"github.com/endiangroup/transferwiser/core"
@@ -27,15 +28,24 @@ func NewServer(logger *zap.Logger, transferwiseAPI core.TransferwiseAPI) *server
 	}
 }
 
-func (s *server) Run(env string, port, letsencryptPort int, caCert string) error {
+func (s *server) Run(port, letsencryptPort int, caCert string, certFile, keyFile string) error {
 	handler := s.MainHandler()
 	tlsServer := handler.TLSServer
 	tlsServer.TLSConfig = new(tls.Config)
 
-	// Automatic let's encrypt
-	handler.AutoTLSManager.Cache = autocert.DirCache(".cache")
-	tlsServer.TLSConfig.GetCertificate = handler.AutoTLSManager.GetCertificate
-	go http.ListenAndServe(fmt.Sprintf(":%v", letsencryptPort), handler.AutoTLSManager.HTTPHandler(nil))
+	if caCert == "" || keyFile == "" {
+		// Automatic let's encrypt
+		handler.AutoTLSManager.Cache = autocert.DirCache(".cache")
+		tlsServer.TLSConfig.GetCertificate = handler.AutoTLSManager.GetCertificate
+		go http.ListenAndServe(fmt.Sprintf(":%v", letsencryptPort), handler.AutoTLSManager.HTTPHandler(nil))
+	} else {
+		// Provided certificate files
+		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+		if err != nil {
+			return errors.Wrap(err, "error loading certificates")
+		}
+		tlsServer.TLSConfig.Certificates = []tls.Certificate{cert}
+	}
 
 	certpool := x509.NewCertPool()
 	if !certpool.AppendCertsFromPEM([]byte(caCert)) {

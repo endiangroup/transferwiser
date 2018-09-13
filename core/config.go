@@ -9,11 +9,12 @@ import (
 type config struct {
 	Port            int    `default:"8080"`
 	LetsEncryptPort int    `default:"8081"`
-	Env             string `default:"dev"`
 	CaCert          string `required:"true"`
 	TwHost          string `default:"api.sandbox.transferwise.tech"`
 	TwProfile       string `required:"true"`
 	TwAPIToken      string `required:"true"`
+	CertFile        string `default:""`
+	KeyFile         string `default:""`
 }
 
 var configInstance *config

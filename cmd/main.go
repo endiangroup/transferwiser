@@ -18,7 +18,7 @@ func main() {
 	transferwiseAPI := core.NewTransferwiseAPI(config.TwHost, config.TwProfile, config.TwAPIToken)
 
 	webServer := web.NewServer(logger, transferwiseAPI)
-	err = webServer.Run(config.Env, config.Port, config.LetsEncryptPort, config.CaCert)
+	err = webServer.Run(config.Port, config.LetsEncryptPort, config.CaCert, config.CertFile, config.KeyFile)
 	if err != nil {
 		logger.Error("error running web.", zap.Error(err))
 	}
