@@ -18,12 +18,8 @@ ca_cert:
 
 .PHONY: server_cert
 server_cert:
-	openssl genrsa -des3 -out certs/server.key 1024
-	openssl req -new -key certs/server.key -out certs/server.csr
-	openssl x509 -req -days 365 -in certs/server.csr -CA certs/ca.crt -CAkey certs/ca.key -set_serial 01 -out certs/server.crt
-	openssl rsa -in certs/server.key -out certs/temp.key
-	rm certs/server.key
-	mv certs/temp.key certs/server.key
+	openssl genrsa -out certs/server.key 2048
+	openssl req -new -x509 -sha256 -key certs/server.key -out certs/server.crt -days 3650
 
 .PHONY: client_cert
 client_cert:
